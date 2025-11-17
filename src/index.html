@@ -1,689 +1,1030 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>F1 Lap Replay Visualizer</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #fff;
-            min-height: 100vh;
-            padding: 20px;
-        }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        color: #fff;
+        min-height: 100vh;
+        padding: 20px;
+      }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
 
-        h1 {
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 2.5em;
-            background: linear-gradient(45deg, #e94560, #ff6b6b);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
+      h1 {
+        text-align: center;
+        margin-bottom: 10px;
+        font-size: 2.5em;
+        background: linear-gradient(45deg, #e94560, #ff6b6b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
 
-        .subtitle {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #a0a0a0;
-            font-size: 0.9em;
-        }
+      .subtitle {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #a0a0a0;
+        font-size: 0.9em;
+      }
 
-        .controls {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 25px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
+      .controls {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 25px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
 
-        .control-row {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
+      .control-row {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+      }
 
-        .control-group {
-            flex: 1;
-            min-width: 200px;
-        }
+      .control-group {
+        flex: 1;
+        min-width: 200px;
+      }
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #a0a0a0;
-            font-size: 0.9em;
-            font-weight: 600;
-        }
+      label {
+        display: block;
+        margin-bottom: 8px;
+        color: #a0a0a0;
+        font-size: 0.9em;
+        font-weight: 600;
+      }
 
-        input, select, button {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            font-size: 0.95em;
-            transition: all 0.3s;
-        }
+      input,
+      select,
+      button {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        font-size: 0.95em;
+        transition: all 0.3s;
+      }
 
-        input:focus, select:focus {
-            outline: none;
-            border-color: #e94560;
-            background: rgba(255, 255, 255, 0.15);
-        }
+      input:focus,
+      select:focus {
+        outline: none;
+        border-color: #e94560;
+        background: rgba(255, 255, 255, 0.15);
+      }
 
-        button {
-            cursor: pointer;
-            background: linear-gradient(45deg, #e94560, #ff6b6b);
-            border: none;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+      button {
+        cursor: pointer;
+        background: linear-gradient(45deg, #e94560, #ff6b6b);
+        border: none;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
 
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(233, 69, 96, 0.4);
-        }
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(233, 69, 96, 0.4);
+      }
 
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
 
-        .playback-controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
+      .playback-controls {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
 
-        .playback-controls button {
-            flex: 1;
-        }
+      .playback-controls button {
+        flex: 1;
+      }
 
-        .speed-control {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+      .speed-control {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
 
-        .speed-control input[type="range"] {
-            width: 100%;
-        }
+      .speed-control input[type="range"] {
+        width: 100%;
+      }
 
+      .visualization {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .canvas-container {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        padding: 20px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      canvas {
+        width: 100%;
+        height: 600px;
+        border-radius: 10px;
+        background: #0a0a0a;
+      }
+
+      .telemetry {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        padding: 20px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        max-height: 600px;
+        overflow-y: auto;
+      }
+
+      .telemetry h3 {
+        margin-bottom: 20px;
+        color: #e94560;
+        position: sticky;
+        top: 0;
+        background: rgba(26, 26, 46, 0.95);
+        padding: 10px 0;
+        margin: -10px 0 20px 0;
+        z-index: 1;
+      }
+
+      #telemetryContainer {
+        padding-top: 5px;
+      }
+
+      .telemetry::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .telemetry::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 4px;
+      }
+
+      .telemetry::-webkit-scrollbar-thumb {
+        background: rgba(233, 69, 96, 0.5);
+        border-radius: 4px;
+      }
+
+      .telemetry::-webkit-scrollbar-thumb:hover {
+        background: rgba(233, 69, 96, 0.8);
+      }
+
+      .driver-telemetry {
+        margin-bottom: 25px;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+        border-left: 4px solid;
+      }
+
+      .driver-telemetry-header {
+        font-size: 1.1em;
+        font-weight: 700;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .driver-telemetry-header .color-indicator {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+      }
+
+      .telemetry-item {
+        margin-bottom: 15px;
+      }
+
+      .telemetry-label {
+        font-size: 0.75em;
+        color: #a0a0a0;
+        margin-bottom: 3px;
+      }
+
+      .telemetry-value {
+        font-size: 1.4em;
+        font-weight: 700;
+        color: #fff;
+        font-family: "Courier New", monospace;
+      }
+
+      .telemetry-bar {
+        width: 100%;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 8px;
+      }
+
+      .telemetry-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #e94560, #ff6b6b);
+        transition: width 0.1s linear;
+      }
+
+      .lap-info {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      .lap-info h4 {
+        color: #4dabf7;
+        margin-bottom: 10px;
+      }
+
+      .lap-info .lap-time {
+        font-size: 2em;
+        font-weight: 700;
+        color: #e94560;
+        font-family: "Courier New", monospace;
+      }
+
+      .status {
+        text-align: center;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        margin-bottom: 15px;
+        font-size: 0.9em;
+      }
+
+      .status.loading {
+        color: #4dabf7;
+      }
+
+      .status.error {
+        color: #ff6b6b;
+      }
+
+      .status.success {
+        color: #51cf66;
+      }
+
+      .info-box {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .info-box h3 {
+        color: #4dabf7;
+        margin-bottom: 15px;
+      }
+
+      .info-box ul {
+        padding-left: 20px;
+        line-height: 1.8;
+      }
+
+      .info-box li {
+        color: #a0a0a0;
+        margin-bottom: 8px;
+      }
+
+      .api-url {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 10px;
+        border-radius: 5px;
+        margin: 10px 0;
+        font-family: monospace;
+        color: #4dabf7;
+      }
+
+      .driver-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        border: 2px solid;
+      }
+
+      .driver-badge .color-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+
+      .driver-badge button {
+        width: auto;
+        padding: 2px 8px;
+        font-size: 0.8em;
+        margin-left: 5px;
+      }
+
+      @media (max-width: 968px) {
         .visualization {
-            display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 20px;
-            margin-bottom: 20px;
+          grid-template-columns: 1fr;
         }
-
-        .canvas-container {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        canvas {
-            width: 100%;
-            height: 600px;
-            border-radius: 10px;
-            background: #0a0a0a;
-        }
-
-        .telemetry {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .telemetry h3 {
-            margin-bottom: 20px;
-            color: #e94560;
-        }
-
-        .telemetry-item {
-            margin-bottom: 20px;
-        }
-
-        .telemetry-label {
-            font-size: 0.85em;
-            color: #a0a0a0;
-            margin-bottom: 5px;
-        }
-
-        .telemetry-value {
-            font-size: 1.8em;
-            font-weight: 700;
-            color: #fff;
-            font-family: 'Courier New', monospace;
-        }
-
-        .telemetry-bar {
-            width: 100%;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            overflow: hidden;
-            margin-top: 8px;
-        }
-
-        .telemetry-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #e94560, #ff6b6b);
-            transition: width 0.1s linear;
-        }
-
-        .lap-info {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .lap-info h4 {
-            color: #4dabf7;
-            margin-bottom: 10px;
-        }
-
-        .lap-info .lap-time {
-            font-size: 2em;
-            font-weight: 700;
-            color: #e94560;
-            font-family: 'Courier New', monospace;
-        }
-
-        .status {
-            text-align: center;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            margin-bottom: 15px;
-            font-size: 0.9em;
-        }
-
-        .status.loading {
-            color: #4dabf7;
-        }
-
-        .status.error {
-            color: #ff6b6b;
-        }
-
-        .status.success {
-            color: #51cf66;
-        }
-
-        .info-box {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .info-box h3 {
-            color: #4dabf7;
-            margin-bottom: 15px;
-        }
-
-        .info-box ul {
-            padding-left: 20px;
-            line-height: 1.8;
-        }
-
-        .info-box li {
-            color: #a0a0a0;
-            margin-bottom: 8px;
-        }
-
-        .api-url {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 10px;
-            border-radius: 5px;
-            margin: 10px 0;
-            font-family: monospace;
-            color: #4dabf7;
-        }
-
-        @media (max-width: 968px) {
-            .visualization {
-                grid-template-columns: 1fr;
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <h1>🏎️ F1 Lap Replay Visualizer</h1>
-        <p class="subtitle">Real-time visualization using FastF1 telemetry data</p>
+      <h1>🏎️ F1 Lap Replay Visualizer</h1>
+      <p class="subtitle">
+        Real-time visualization with multi-driver comparison using FastF1
+        telemetry data
+      </p>
 
-        <div id="status" class="status" style="display: none;"></div>
+      <div id="status" class="status" style="display: none"></div>
 
-        <div class="controls">
-            <div class="control-row">
-                <div class="control-group">
-                    <label for="apiUrl">API URL</label>
-                    <input type="text" id="apiUrl" value="http://localhost:8000">
-                </div>
-            </div>
-            <div class="control-row">
-                <div class="control-group">
-                    <label for="year">Year</label>
-                    <input type="number" id="year" value="2024" min="2018" max="2024">
-                </div>
-                <div class="control-group">
-                    <label for="round">Round (GP Number)</label>
-                    <input type="number" id="round" value="1" min="1" max="24">
-                </div>
-                <div class="control-group">
-                    <label for="session">Session</label>
-                    <select id="session">
-                        <option value="R">Race</option>
-                        <option value="Q">Qualifying</option>
-                        <option value="S">Sprint</option>
-                        <option value="FP1">Practice 1</option>
-                        <option value="FP2">Practice 2</option>
-                        <option value="FP3">Practice 3</option>
-                    </select>
-                </div>
-                <div class="control-group">
-                    <label for="driver">Driver Code (e.g., VER, HAM)</label>
-                    <input type="text" id="driver" value="VER" maxlength="3" style="text-transform: uppercase;">
-                </div>
-            </div>
-            <div class="control-row">
-                <button id="loadData">Load Real Lap Data</button>
-            </div>
+      <div class="controls">
+        <div class="control-row">
+          <div class="control-group">
+            <label for="apiUrl">API URL</label>
+            <input type="text" id="apiUrl" value="http://localhost:8000" />
+          </div>
         </div>
-
-        <div id="lapInfo" class="lap-info" style="display: none;">
-            <h4 id="trackName"></h4>
-            <div class="lap-time" id="lapTime"></div>
-            <div style="color: #a0a0a0; margin-top: 10px;">
-                Driver: <span id="driverName"></span> | Lap: <span id="lapNumber"></span>
-            </div>
+        <div class="control-row">
+          <div class="control-group">
+            <label for="year">Year</label>
+            <input type="number" id="year" value="2024" min="2018" max="2024" />
+          </div>
+          <div class="control-group">
+            <label for="round">Round (GP Number)</label>
+            <input type="number" id="round" value="1" min="1" max="24" />
+          </div>
+          <div class="control-group">
+            <label for="session">Session</label>
+            <select id="session">
+              <option value="R">Race</option>
+              <option value="Q">Qualifying</option>
+              <option value="S">Sprint</option>
+              <option value="FP1">Practice 1</option>
+              <option value="FP2">Practice 2</option>
+              <option value="FP3">Practice 3</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label for="driver">Driver Code (e.g., VER, HAM)</label>
+            <input
+              type="text"
+              id="driver"
+              value="VER"
+              maxlength="3"
+              style="text-transform: uppercase"
+            />
+          </div>
         </div>
-
-        <div class="controls">
-            <div class="control-row playback-controls">
-                <button id="playPause" disabled>▶ Play</button>
-                <button id="reset" disabled>⟲ Reset</button>
-            </div>
-            <div class="control-row">
-                <div class="control-group speed-control">
-                    <label for="speed">Playback Speed: <span id="speedValue">1x</span></label>
-                    <input type="range" id="speed" min="0.1" max="5" step="0.1" value="1">
-                </div>
-            </div>
+        <div class="control-row">
+          <button id="loadData">Load Driver</button>
+          <button
+            id="clearDrivers"
+            style="background: linear-gradient(45deg, #ff6b6b, #ff0000)"
+          >
+            Clear All Drivers
+          </button>
         </div>
-
-        <div class="visualization">
-            <div class="canvas-container">
-                <canvas id="trackCanvas"></canvas>
-            </div>
-            <div class="telemetry">
-                <h3>Live Telemetry</h3>
-                <div class="telemetry-item">
-                    <div class="telemetry-label">Speed</div>
-                    <div class="telemetry-value"><span id="speed-value">0</span> km/h</div>
-                    <div class="telemetry-bar">
-                        <div class="telemetry-bar-fill" id="speed-bar"></div>
-                    </div>
-                </div>
-                <div class="telemetry-item">
-                    <div class="telemetry-label">Throttle</div>
-                    <div class="telemetry-value"><span id="throttle-value">0</span>%</div>
-                    <div class="telemetry-bar">
-                        <div class="telemetry-bar-fill" id="throttle-bar"></div>
-                    </div>
-                </div>
-                <div class="telemetry-item">
-                    <div class="telemetry-label">Brake</div>
-                    <div class="telemetry-value"><span id="brake-value">0</span>%</div>
-                    <div class="telemetry-bar">
-                        <div class="telemetry-bar-fill" id="brake-bar" style="background: linear-gradient(90deg, #ff6b6b, #ff0000);"></div>
-                    </div>
-                </div>
-                <div class="telemetry-item">
-                    <div class="telemetry-label">Gear</div>
-                    <div class="telemetry-value"><span id="gear-value">-</span></div>
-                </div>
-                <div class="telemetry-item">
-                    <div class="telemetry-label">RPM</div>
-                    <div class="telemetry-value"><span id="rpm-value">0</span></div>
-                </div>
-                <div class="telemetry-item">
-                    <div class="telemetry-label">DRS</div>
-                    <div class="telemetry-value"><span id="drs-value">❌</span></div>
-                </div>
-                <div class="telemetry-item">
-                    <div class="telemetry-label">Distance</div>
-                    <div class="telemetry-value"><span id="distance-value">0</span> m</div>
-                </div>
-            </div>
+        <div id="driversLoaded" style="margin-top: 15px; display: none">
+          <label style="color: #4dabf7"
+            >Loaded Drivers (<span id="driverCount">0</span>/4):</label
+          >
+          <div
+            id="driversList"
+            style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px"
+          ></div>
         </div>
+      </div>
 
-        <div class="info-box">
-            <h3>Setup Instructions</h3>
-            <ol style="padding-left: 20px; line-height: 1.8;">
-                <li style="color: #a0a0a0; margin-bottom: 12px;">
-                    <strong style="color: #fff;">Install Python backend:</strong>
-                    <div class="api-url">pip install -r requirements.txt</div>
-                </li>
-                <li style="color: #a0a0a0; margin-bottom: 12px;">
-                    <strong style="color: #fff;">Run the API server:</strong>
-                    <div class="api-url">python main.py</div>
-                    or
-                    <div class="api-url">uvicorn main:app --reload</div>
-                </li>
-                <li style="color: #a0a0a0; margin-bottom: 12px;">
-                    <strong style="color: #fff;">Enter session details</strong> (year, round, session, driver) and click "Load Real Lap Data"
-                </li>
-                <li style="color: #a0a0a0; margin-bottom: 12px;">
-                    <strong style="color: #fff;">Wait for data to load</strong> (first load may take 30-120 seconds as FastF1 downloads data)
-                </li>
-                <li style="color: #a0a0a0;">
-                    <strong style="color: #fff;">Click Play</strong> to watch the lap replay with live telemetry!
-                </li>
-            </ol>
-            <p style="margin-top: 15px; color: #4dabf7;">
-                <strong>Note:</strong> The backend API caches data locally for faster subsequent loads. 
-                Data is available from 2018 onwards and is typically ready 30-120 minutes after a session ends.
-            </p>
+      <div id="lapInfo" class="lap-info" style="display: none">
+        <h4 id="trackName"></h4>
+        <div class="lap-time" id="lapTime"></div>
+        <div style="color: #a0a0a0; margin-top: 10px">
+          Driver: <span id="driverName"></span> | Lap:
+          <span id="lapNumber"></span>
         </div>
+      </div>
+
+      <div class="controls">
+        <div class="control-row playback-controls">
+          <button id="playPause" disabled>▶ Play</button>
+          <button id="reset" disabled>⟲ Reset</button>
+        </div>
+        <div class="control-row">
+          <div class="control-group speed-control">
+            <label for="speed"
+              >Playback Speed: <span id="speedValue">1x</span></label
+            >
+            <input
+              type="range"
+              id="speed"
+              min="0.1"
+              max="5"
+              step="0.1"
+              value="1"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="visualization">
+        <div class="canvas-container">
+          <canvas id="trackCanvas"></canvas>
+        </div>
+        <div class="telemetry">
+          <h3>Live Telemetry</h3>
+          <div id="telemetryContainer"></div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <h3>Setup Instructions</h3>
+        <ol style="padding-left: 20px; line-height: 1.8">
+          <li style="color: #a0a0a0; margin-bottom: 12px">
+            <strong style="color: #fff">Install Python backend:</strong>
+            <div class="api-url">pip install -r requirements.txt</div>
+          </li>
+          <li style="color: #a0a0a0; margin-bottom: 12px">
+            <strong style="color: #fff">Run the API server:</strong>
+            <div class="api-url">python main.py</div>
+            or
+            <div class="api-url">uvicorn main:app --reload</div>
+          </li>
+          <li style="color: #a0a0a0; margin-bottom: 12px">
+            <strong style="color: #fff">Load drivers:</strong> Enter session
+            details and driver code, then click "Load Driver"
+          </li>
+          <li style="color: #a0a0a0; margin-bottom: 12px">
+            <strong style="color: #fff">Compare multiple drivers:</strong> Load
+            additional drivers by changing the driver code and clicking "Load
+            Driver" again
+          </li>
+          <li style="color: #a0a0a0">
+            <strong style="color: #fff">Click Play</strong> to watch the
+            comparison with live telemetry!
+          </li>
+        </ol>
+        <p style="margin-top: 15px; color: #4dabf7">
+          <strong>💡 Tip:</strong> Compare up to 4 drivers simultaneously (e.g.,
+          VER, HAM, LEC, SAI) from the same session. Each driver gets a unique
+          color and their own live telemetry display!
+        </p>
+        <p style="margin-top: 10px; color: #a0a0a0; font-size: 0.9em">
+          <strong>Note:</strong> First load may take 30-120 seconds. Data is
+          cached locally and available from 2018 onwards.
+        </p>
+      </div>
     </div>
 
     <script>
-        const canvas = document.getElementById('trackCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        let lapData = null;
-        let currentFrame = 0;
-        let isPlaying = false;
-        let playbackSpeed = 1;
-        let animationFrame = null;
-        let lastTimestamp = 0;
-        let trackInfo = null;
+      const canvas = document.getElementById("trackCanvas");
+      const ctx = canvas.getContext("2d");
 
-        // Set canvas resolution
-        function resizeCanvas() {
-            const rect = canvas.getBoundingClientRect();
-            canvas.width = rect.width * window.devicePixelRatio;
-            canvas.height = rect.height * window.devicePixelRatio;
-            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-            if (lapData) drawTrack();
-        }
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
+      let lapData = null;
+      let currentFrame = 0;
+      let isPlaying = false;
+      let playbackSpeed = 1;
+      let animationFrame = null;
+      let lastTimestamp = 0;
+      let trackInfo = null;
+      let playbackTime = 0; // Current playback time in seconds
+      let lapDuration = 0; // Total lap duration in seconds
 
-        // Scale normalized coordinates to canvas
-        function scalePoint(x, y) {
-            const rect = canvas.getBoundingClientRect();
-            const padding = 40;
-            const width = rect.width - padding * 2;
-            const height = rect.height - padding * 2;
-            
-            return {
-                x: padding + x * width,
-                y: padding + y * height
-            };
-        }
+      // Multi-driver comparison
+      let drivers = []; // Array of {driver: string, lapData: array, color: string, currentFrame: number}
 
-        // Draw track
-        function drawTrack() {
-            if (!lapData) return;
-            
-            const rect = canvas.getBoundingClientRect();
-            ctx.clearRect(0, 0, rect.width, rect.height);
-            
-            // Draw track line
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-            ctx.lineWidth = 20;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.beginPath();
-            lapData.forEach((point, i) => {
-                const scaled = scalePoint(point.x, point.y);
-                if (i === 0) ctx.moveTo(scaled.x, scaled.y);
-                else ctx.lineTo(scaled.x, scaled.y);
-            });
-            ctx.closePath();
-            ctx.stroke();
+      // Set canvas resolution
+      function resizeCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * window.devicePixelRatio;
+        canvas.height = rect.height * window.devicePixelRatio;
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        if (lapData) drawTrack();
+      }
+      resizeCanvas();
+      window.addEventListener("resize", resizeCanvas);
 
-            // Draw driven portion with gradient
-            const gradient = ctx.createLinearGradient(0, 0, rect.width, 0);
-            gradient.addColorStop(0, '#e94560');
-            gradient.addColorStop(1, '#ff6b6b');
-            
-            ctx.strokeStyle = gradient;
-            ctx.lineWidth = 18;
-            ctx.beginPath();
-            for (let i = 0; i <= currentFrame && i < lapData.length; i++) {
-                const point = lapData[i];
-                const scaled = scalePoint(point.x, point.y);
-                if (i === 0) ctx.moveTo(scaled.x, scaled.y);
-                else ctx.lineTo(scaled.x, scaled.y);
-            }
-            ctx.stroke();
+      // Scale normalized coordinates to canvas
+      function scalePoint(x, y) {
+        const rect = canvas.getBoundingClientRect();
+        const padding = 40;
+        const width = rect.width - padding * 2;
+        const height = rect.height - padding * 2;
 
-            // Draw car
-            if (currentFrame < lapData.length) {
-                const car = lapData[currentFrame];
-                const nextCar = lapData[(currentFrame + 1) % lapData.length];
-                const scaledCar = scalePoint(car.x, car.y);
-                const scaledNext = scalePoint(nextCar.x, nextCar.y);
-                
-                // Calculate car angle
-                const dx = scaledNext.x - scaledCar.x;
-                const dy = scaledNext.y - scaledCar.y;
-                const angle = Math.atan2(dy, dx);
-                
-                ctx.save();
-                ctx.translate(scaledCar.x, scaledCar.y);
-                ctx.rotate(angle);
-                
-                // Draw car body
-                ctx.fillStyle = '#e94560';
-                ctx.shadowColor = '#e94560';
-                ctx.shadowBlur = 20;
-                ctx.fillRect(-15, -8, 30, 16);
-                
-                // Draw car front
-                ctx.fillStyle = '#fff';
-                ctx.fillRect(12, -6, 6, 12);
-                
-                ctx.restore();
+        return {
+          x: padding + x * width,
+          y: padding + y * height,
+        };
+      }
 
-                // Draw speed trail
-                ctx.globalAlpha = 0.3;
-                for (let i = Math.max(0, currentFrame - 10); i < currentFrame; i++) {
-                    const p = lapData[i];
-                    const scaledP = scalePoint(p.x, p.y);
-                    const alpha = (i - (currentFrame - 10)) / 10;
-                    ctx.fillStyle = `rgba(233, 69, 96, ${alpha})`;
-                    ctx.beginPath();
-                    ctx.arc(scaledP.x, scaledP.y, 3, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-                ctx.globalAlpha = 1;
-            }
+      // Draw track
+      function drawTrack() {
+        if (drivers.length === 0) return;
 
-            // Draw start/finish line
-            const start = lapData[0];
-            const scaledStart = scalePoint(start.x, start.y);
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 3;
-            ctx.setLineDash([10, 10]);
-            ctx.beginPath();
-            ctx.moveTo(scaledStart.x - 20, scaledStart.y);
-            ctx.lineTo(scaledStart.x + 20, scaledStart.y);
-            ctx.stroke();
-            ctx.setLineDash([]);
-        }
+        const rect = canvas.getBoundingClientRect();
+        ctx.clearRect(0, 0, rect.width, rect.height);
 
-        // Update telemetry display
-        function updateTelemetry() {
-            if (!lapData || currentFrame >= lapData.length) return;
-            
-            const data = lapData[currentFrame];
-            
-            document.getElementById('speed-value').textContent = Math.round(data.speed);
-            document.getElementById('throttle-value').textContent = Math.round(data.throttle);
-            document.getElementById('brake-value').textContent = Math.round(data.brake);
-            document.getElementById('gear-value').textContent = data.gear;
-            document.getElementById('rpm-value').textContent = Math.round(data.rpm);
-            document.getElementById('drs-value').textContent = data.drs ? '✅' : '❌';
-            document.getElementById('distance-value').textContent = Math.round(data.distance);
-            
-            document.getElementById('speed-bar').style.width = (data.speed / 350 * 100) + '%';
-            document.getElementById('throttle-bar').style.width = data.throttle + '%';
-            document.getElementById('brake-bar').style.width = data.brake + '%';
-        }
+        // Draw track line using first driver's data
+        const firstDriver = drivers[0];
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+        ctx.lineWidth = 20;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.beginPath();
+        firstDriver.lapData.forEach((point, i) => {
+          const scaled = scalePoint(point.x, point.y);
+          if (i === 0) ctx.moveTo(scaled.x, scaled.y);
+          else ctx.lineTo(scaled.x, scaled.y);
+        });
+        ctx.closePath();
+        ctx.stroke();
 
-        // Animation loop
-        function animate(timestamp) {
-            if (!isPlaying) return;
-            
-            const deltaTime = timestamp - lastTimestamp;
-            const frameTime = 16.67 / playbackSpeed;
-            
-            if (deltaTime >= frameTime) {
-                currentFrame++;
-                if (currentFrame >= lapData.length) {
-                    currentFrame = 0;
-                }
-                
-                drawTrack();
-                updateTelemetry();
-                lastTimestamp = timestamp;
-            }
-            
-            animationFrame = requestAnimationFrame(animate);
-        }
+        // Draw each driver's driven portion and car
+        drivers.forEach((driverData) => {
+          const { lapData, color, currentFrame: frame } = driverData;
 
-        // Load data from API
-        async function loadLapData() {
-            const apiUrl = document.getElementById('apiUrl').value;
-            const year = document.getElementById('year').value;
-            const round = document.getElementById('round').value;
-            const session = document.getElementById('session').value;
-            const driver = document.getElementById('driver').value.toUpperCase();
+          // Draw driven portion
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 12;
+          ctx.globalAlpha = 0.5;
+          ctx.beginPath();
+          for (let i = 0; i <= frame && i < lapData.length; i++) {
+            const point = lapData[i];
+            const scaled = scalePoint(point.x, point.y);
+            if (i === 0) ctx.moveTo(scaled.x, scaled.y);
+            else ctx.lineTo(scaled.x, scaled.y);
+          }
+          ctx.stroke();
+          ctx.globalAlpha = 1;
 
-            if (!driver || driver.length !== 3) {
-                showStatus('Please enter a valid 3-letter driver code', 'error');
-                return;
-            }
+          // Draw car
+          if (frame < lapData.length) {
+            const car = lapData[frame];
+            const nextCar = lapData[(frame + 1) % lapData.length];
+            const scaledCar = scalePoint(car.x, car.y);
+            const scaledNext = scalePoint(nextCar.x, nextCar.y);
 
-            showStatus('Loading lap data from FastF1... This may take 30-120 seconds on first load.', 'loading');
-            
-            try {
-                const response = await fetch(
-                    `${apiUrl}/api/lap/${year}/${round}/${session}/${driver}`
-                );
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.detail || 'Failed to load data');
-                }
-                
-                const data = await response.json();
-                
-                lapData = data.telemetry;
-                trackInfo = data.track_info;
-                currentFrame = 0;
-                
-                // Update lap info display
-                document.getElementById('lapInfo').style.display = 'block';
-                document.getElementById('trackName').textContent = trackInfo.name;
-                document.getElementById('lapTime').textContent = data.lap_time;
-                document.getElementById('driverName').textContent = data.driver;
-                document.getElementById('lapNumber').textContent = data.lap_number;
-                
-                drawTrack();
-                updateTelemetry();
-                
-                document.getElementById('playPause').disabled = false;
-                document.getElementById('reset').disabled = false;
-                
-                showStatus(`Successfully loaded ${lapData.length} telemetry points! Click Play to start.`, 'success');
-                setTimeout(() => hideStatus(), 3000);
-                
-            } catch (error) {
-                showStatus(`Error: ${error.message}. Make sure the API server is running at ${apiUrl}`, 'error');
-                console.error('Error loading lap data:', error);
-            }
-        }
+            // Calculate car angle
+            const dx = scaledNext.x - scaledCar.x;
+            const dy = scaledNext.y - scaledCar.y;
+            const angle = Math.atan2(dy, dx);
 
-        // Controls
-        document.getElementById('loadData').addEventListener('click', loadLapData);
+            ctx.save();
+            ctx.translate(scaledCar.x, scaledCar.y);
+            ctx.rotate(angle);
 
-        document.getElementById('playPause').addEventListener('click', () => {
-            isPlaying = !isPlaying;
-            const btn = document.getElementById('playPause');
-            
-            if (isPlaying) {
-                btn.textContent = '⏸ Pause';
-                lastTimestamp = performance.now();
-                animationFrame = requestAnimationFrame(animate);
-            } else {
-                btn.textContent = '▶ Play';
-                if (animationFrame) {
-                    cancelAnimationFrame(animationFrame);
-                }
-            }
+            // Draw car body
+            ctx.fillStyle = color;
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 20;
+            ctx.fillRect(-15, -8, 30, 16);
+
+            // Draw car front
+            ctx.fillStyle = "#fff";
+            ctx.fillRect(12, -6, 6, 12);
+
+            ctx.restore();
+
+            // Draw driver name above car
+            ctx.fillStyle = "#fff";
+            ctx.font = "bold 12px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(driverData.driver, scaledCar.x, scaledCar.y - 20);
+          }
         });
 
-        document.getElementById('reset').addEventListener('click', () => {
-            isPlaying = false;
-            currentFrame = 0;
-            document.getElementById('playPause').textContent = '▶ Play';
-            if (animationFrame) {
-                cancelAnimationFrame(animationFrame);
-            }
-            drawTrack();
-            updateTelemetry();
-        });
+        // Draw start/finish line
+        const start = firstDriver.lapData[0];
+        const scaledStart = scalePoint(start.x, start.y);
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 3;
+        ctx.setLineDash([10, 10]);
+        ctx.beginPath();
+        ctx.moveTo(scaledStart.x - 20, scaledStart.y);
+        ctx.lineTo(scaledStart.x + 20, scaledStart.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
 
-        document.getElementById('speed').addEventListener('input', (e) => {
-            playbackSpeed = parseFloat(e.target.value);
-            document.getElementById('speedValue').textContent = playbackSpeed.toFixed(1) + 'x';
-        });
+      // Find the frame index for a given playback time
+      function findFrameForTime(time, data) {
+        if (!data || data.length === 0) return 0;
 
-        // Status helpers
-        function showStatus(message, type) {
-            const status = document.getElementById('status');
-            status.textContent = message;
-            status.className = 'status ' + type;
-            status.style.display = 'block';
+        // Binary search for the appropriate frame
+        let left = 0;
+        let right = data.length - 1;
+
+        while (left < right) {
+          const mid = Math.floor((left + right + 1) / 2);
+          if (data[mid].time <= time) {
+            left = mid;
+          } else {
+            right = mid - 1;
+          }
         }
 
-        function hideStatus() {
-            document.getElementById('status').style.display = 'none';
+        return left;
+      }
+
+      // Get a random color for a driver
+      const driverColors = [
+        "#e94560",
+        "#4dabf7",
+        "#51cf66",
+        "#ffd43b",
+        "#ff6b6b",
+        "#a78bfa",
+        "#fb923c",
+        "#34d399",
+        "#f472b6",
+        "#818cf8",
+      ];
+      let colorIndex = 0;
+
+      function getNextColor() {
+        const color = driverColors[colorIndex % driverColors.length];
+        colorIndex++;
+        return color;
+      }
+
+      // Create telemetry display structure for all drivers
+      function createTelemetryStructure() {
+        const container = document.getElementById("telemetryContainer");
+        container.innerHTML = "";
+
+        drivers.forEach((driver, index) => {
+          const driverSection = document.createElement("div");
+          driverSection.className = "driver-telemetry";
+          driverSection.style.borderLeftColor = driver.color;
+          driverSection.id = `driver-telemetry-${index}`;
+
+          driverSection.innerHTML = `
+            <div class="driver-telemetry-header">
+              <div class="color-indicator" style="background: ${driver.color};"></div>
+              <span>${driver.driver}</span>
+            </div>
+            <div class="telemetry-item">
+              <div class="telemetry-label">Speed</div>
+              <div class="telemetry-value"><span id="speed-${index}">0</span> km/h</div>
+              <div class="telemetry-bar">
+                <div class="telemetry-bar-fill" id="speed-bar-${index}" style="background: ${driver.color};"></div>
+              </div>
+            </div>
+            <div class="telemetry-item">
+              <div class="telemetry-label">Throttle / Brake</div>
+              <div class="telemetry-value"><span id="throttle-${index}">0</span>% / <span id="brake-${index}">0</span>%</div>
+              <div class="telemetry-bar">
+                <div class="telemetry-bar-fill" id="throttle-bar-${index}" style="background: ${driver.color};"></div>
+              </div>
+            </div>
+            <div class="telemetry-item">
+              <div class="telemetry-label">Gear / RPM / DRS</div>
+              <div class="telemetry-value">
+                <span id="gear-${index}">-</span> / 
+                <span id="rpm-${index}" style="font-size: 0.8em;">0</span> / 
+                <span id="drs-${index}">❌</span>
+              </div>
+            </div>
+          `;
+
+          container.appendChild(driverSection);
+        });
+      }
+
+      // Update telemetry display for all drivers
+      function updateTelemetry() {
+        if (drivers.length === 0) return;
+
+        drivers.forEach((driver, index) => {
+          if (driver.currentFrame >= driver.lapData.length) return;
+
+          const data = driver.lapData[driver.currentFrame];
+
+          document.getElementById(`speed-${index}`).textContent = Math.round(
+            data.speed
+          );
+          document.getElementById(`throttle-${index}`).textContent = Math.round(
+            data.throttle
+          );
+          document.getElementById(`brake-${index}`).textContent = Math.round(
+            data.brake
+          );
+          document.getElementById(`gear-${index}`).textContent = data.gear;
+          document.getElementById(`rpm-${index}`).textContent = Math.round(
+            data.rpm
+          );
+          document.getElementById(`drs-${index}`).textContent = data.drs
+            ? "✅"
+            : "❌";
+
+          document.getElementById(`speed-bar-${index}`).style.width =
+            (data.speed / 350) * 100 + "%";
+          document.getElementById(`throttle-bar-${index}`).style.width =
+            data.throttle + "%";
+        });
+      }
+
+      // Animation loop
+      function animate(timestamp) {
+        if (!isPlaying) return;
+
+        // Calculate elapsed real time in milliseconds
+        const deltaTime = timestamp - lastTimestamp;
+        lastTimestamp = timestamp;
+
+        // Update playback time based on speed (convert ms to seconds)
+        playbackTime += (deltaTime / 1000) * playbackSpeed;
+
+        // Loop back to start if we've reached the end
+        if (playbackTime >= lapDuration) {
+          playbackTime = 0;
         }
 
-        // Initial draw
+        // Update each driver's current frame based on playback time
+        drivers.forEach((driver) => {
+          driver.currentFrame = findFrameForTime(playbackTime, driver.lapData);
+        });
+
         drawTrack();
+        updateTelemetry();
+
+        animationFrame = requestAnimationFrame(animate);
+      }
+
+      // Load data from API
+      async function loadLapData() {
+        const apiUrl = document.getElementById("apiUrl").value;
+        const year = document.getElementById("year").value;
+        const round = document.getElementById("round").value;
+        const session = document.getElementById("session").value;
+        const driver = document.getElementById("driver").value.toUpperCase();
+
+        if (!driver || driver.length !== 3) {
+          showStatus("Please enter a valid 3-letter driver code", "error");
+          return;
+        }
+
+        // Check max driver limit
+        if (drivers.length >= 4) {
+          showStatus(
+            "Maximum 4 drivers allowed! Remove a driver first.",
+            "error"
+          );
+          return;
+        }
+
+        // Check if driver already loaded
+        if (drivers.find((d) => d.driver === driver)) {
+          showStatus(`Driver ${driver} is already loaded!`, "error");
+          return;
+        }
+
+        showStatus(
+          `Loading ${driver}... This may take 30-120 seconds on first load.`,
+          "loading"
+        );
+
+        try {
+          const response = await fetch(
+            `${apiUrl}/api/lap/${year}/${round}/${session}/${driver}`
+          );
+
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || "Failed to load data");
+          }
+
+          const data = await response.json();
+
+          // Add driver to the comparison
+          const color = getNextColor();
+          drivers.push({
+            driver: data.driver,
+            lapData: data.telemetry,
+            lapTime: data.lap_time,
+            lapNumber: data.lap_number,
+            color: color,
+            currentFrame: 0,
+          });
+
+          // Update track info and lap duration from first driver
+          if (drivers.length === 1) {
+            trackInfo = data.track_info;
+            lapDuration = data.telemetry[data.telemetry.length - 1].time;
+
+            document.getElementById("lapInfo").style.display = "block";
+            document.getElementById("trackName").textContent = trackInfo.name;
+            document.getElementById("playPause").disabled = false;
+            document.getElementById("reset").disabled = false;
+          } else {
+            // Update lap duration to longest lap
+            const driverDuration =
+              data.telemetry[data.telemetry.length - 1].time;
+            if (driverDuration > lapDuration) {
+              lapDuration = driverDuration;
+            }
+          }
+
+          // Update loaded drivers display
+          updateDriversList();
+
+          // Maintain backwards compatibility with single driver
+          lapData = drivers[0].lapData;
+          currentFrame = 0;
+          playbackTime = 0;
+
+          // Rebuild telemetry structure for all drivers
+          createTelemetryStructure();
+
+          drawTrack();
+          updateTelemetry();
+
+          showStatus(
+            `Successfully loaded ${driver} (${data.lap_time})!`,
+            "success"
+          );
+          setTimeout(() => hideStatus(), 3000);
+        } catch (error) {
+          showStatus(
+            `Error: ${error.message}. Make sure the API server is running at ${apiUrl}`,
+            "error"
+          );
+          console.error("Error loading lap data:", error);
+        }
+      }
+
+      // Update the drivers list display
+      function updateDriversList() {
+        const driversLoaded = document.getElementById("driversLoaded");
+        const driversList = document.getElementById("driversList");
+        const driverCount = document.getElementById("driverCount");
+
+        driverCount.textContent = drivers.length;
+
+        if (drivers.length === 0) {
+          driversLoaded.style.display = "none";
+          return;
+        }
+
+        driversLoaded.style.display = "block";
+        driversList.innerHTML = "";
+
+        drivers.forEach((driver, index) => {
+          const badge = document.createElement("div");
+          badge.className = "driver-badge";
+          badge.style.borderColor = driver.color;
+          badge.innerHTML = `
+            <div class="color-dot" style="background: ${driver.color};"></div>
+            <strong>${driver.driver}</strong>
+            <span style="color: #a0a0a0;">${driver.lapTime}</span>
+            <button onclick="removeDriver(${index})">×</button>
+          `;
+          driversList.appendChild(badge);
+        });
+
+        // Update lap info to show all lap times
+        let lapTimesText = drivers
+          .map((d) => `${d.driver}: ${d.lapTime}`)
+          .join(" | ");
+        document.getElementById("lapTime").textContent = lapTimesText;
+      }
+
+      // Remove a driver from comparison
+      window.removeDriver = function (index) {
+        drivers.splice(index, 1);
+        updateDriversList();
+
+        if (drivers.length === 0) {
+          document.getElementById("lapInfo").style.display = "none";
+          document.getElementById("playPause").disabled = true;
+          document.getElementById("reset").disabled = true;
+          lapData = null;
+          document.getElementById("telemetryContainer").innerHTML = "";
+        } else {
+          lapData = drivers[0].lapData;
+          lapDuration = Math.max(
+            ...drivers.map((d) => d.lapData[d.lapData.length - 1].time)
+          );
+
+          // Rebuild telemetry structure
+          createTelemetryStructure();
+        }
+
+        drawTrack();
+        updateTelemetry();
+      };
+
+      // Clear all drivers
+      function clearAllDrivers() {
+        drivers = [];
+        lapData = null;
+        currentFrame = 0;
+        playbackTime = 0;
+        lapDuration = 0;
+        colorIndex = 0;
+        isPlaying = false;
+
+        updateDriversList();
+
+        document.getElementById("lapInfo").style.display = "none";
+        document.getElementById("playPause").disabled = true;
+        document.getElementById("playPause").textContent = "▶ Play";
+        document.getElementById("reset").disabled = true;
+        document.getElementById("telemetryContainer").innerHTML = "";
+
+        if (animationFrame) {
+          cancelAnimationFrame(animationFrame);
+        }
+
+        const rect = canvas.getBoundingClientRect();
+        ctx.clearRect(0, 0, rect.width, rect.height);
+      }
+
+      // Controls
+      document
+        .getElementById("loadData")
+        .addEventListener("click", loadLapData);
+
+      document
+        .getElementById("clearDrivers")
+        .addEventListener("click", clearAllDrivers);
+
+      document.getElementById("playPause").addEventListener("click", () => {
+        isPlaying = !isPlaying;
+        const btn = document.getElementById("playPause");
+
+        if (isPlaying) {
+          btn.textContent = "⏸ Pause";
+          lastTimestamp = performance.now();
+          animationFrame = requestAnimationFrame(animate);
+        } else {
+          btn.textContent = "▶ Play";
+          if (animationFrame) {
+            cancelAnimationFrame(animationFrame);
+          }
+        }
+      });
+
+      document.getElementById("reset").addEventListener("click", () => {
+        isPlaying = false;
+        playbackTime = 0;
+
+        // Reset all drivers to start
+        drivers.forEach((driver) => {
+          driver.currentFrame = 0;
+        });
+
+        document.getElementById("playPause").textContent = "▶ Play";
+        if (animationFrame) {
+          cancelAnimationFrame(animationFrame);
+        }
+        drawTrack();
+        updateTelemetry();
+      });
+
+      document.getElementById("speed").addEventListener("input", (e) => {
+        playbackSpeed = parseFloat(e.target.value);
+        document.getElementById("speedValue").textContent =
+          playbackSpeed.toFixed(1) + "x";
+      });
+
+      // Status helpers
+      function showStatus(message, type) {
+        const status = document.getElementById("status");
+        status.textContent = message;
+        status.className = "status " + type;
+        status.style.display = "block";
+      }
+
+      function hideStatus() {
+        document.getElementById("status").style.display = "none";
+      }
+
+      // Initial draw (canvas will be drawn when data is loaded)
     </script>
-</body>
+  </body>
 </html>
